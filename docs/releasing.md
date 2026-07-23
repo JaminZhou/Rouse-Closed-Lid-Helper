@@ -52,3 +52,21 @@ the API key under `$RUNNER_TEMP`. Neither is included in the artifact.
    - `Rouse-Closed-Lid-Helper.dmg.sha256`
 5. Download the published DMG on a clean account and repeat Gatekeeper,
    registration, and removal smoke tests.
+
+## Delayed notarization
+
+The notarization script submits once, then polls the returned submission ID up
+to three times. Submission output is streamed so the ID remains visible even if
+the command is interrupted. An ID is allocated before the artifact finishes
+uploading: if the command fails without printing `Successfully uploaded file`,
+inspect that ID with `notarytool info` and resume it only when Apple confirms
+the upload. If a local run is interrupted after a confirmed upload, resume that
+exact artifact without uploading a duplicate:
+
+```bash
+NOTARY_SUBMISSION_ID=<submission-id> ./scripts/notarize.sh "<same app-or-dmg path>"
+```
+
+`NOTARY_WAIT_TIMEOUT` can override the default `10m` wait for each attempt.
+Stapling still proceeds only after the resumed submission reports `Accepted`;
+using an ID for a different artifact will fail ticket stapling.
