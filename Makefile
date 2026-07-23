@@ -28,7 +28,7 @@ test: generate
 
 archive: generate
 	rm -rf "$(ARCHIVE_PATH)"
-	@$(ASC_XCODE_AUTH) xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -configuration "$(CONFIGURATION)" -archivePath "$(ARCHIVE_PATH)" archive -allowProvisioningUpdates "$$@" CODE_SIGN_IDENTITY="Developer ID Application"
+	@$(ASC_XCODE_AUTH) xcodebuild -project "$(PROJECT)" -scheme "$(SCHEME)" -configuration "$(CONFIGURATION)" -archivePath "$(ARCHIVE_PATH)" archive -allowProvisioningUpdates "$$@" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$${DEVELOPER_ID_APPLICATION:-Developer ID Application}"
 
 export: archive
 	rm -rf "$(EXPORT_PATH)"
