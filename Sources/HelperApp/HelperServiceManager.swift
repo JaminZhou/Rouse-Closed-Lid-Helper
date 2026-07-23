@@ -123,7 +123,13 @@ final class HelperServiceManager: ObservableObject {
         errorMessage = nil
         do {
             if service.status == .enabled {
-                try await client.restoreOriginalSettings()
+                do {
+                    try await client.restoreOriginalSettings()
+                } catch {
+                    // Continue with re-registration when the installed daemon cannot answer.
+                    // Its termination handler or the replacement daemon's startup recovery
+                    // will restore any settings recorded in the recovery journal.
+                }
             }
             if service.status != .notRegistered {
                 try await service.unregister()
