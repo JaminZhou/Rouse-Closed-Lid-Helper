@@ -79,9 +79,11 @@ final class DaemonClient {
             )
             connection.remoteObjectInterface = NSXPCInterface(with: RouseClosedLidDaemonProtocol.self)
             connection.setCodeSigningRequirement(RouseClosedLidIPC.daemonCodeSigningRequirement)
-            let gate = DaemonContinuationGate(continuation: continuation)
-            let finish: (Result<T, Error>) -> Void = { [weak connection] result in
-                connection?.invalidate()
+            let gate = DaemonContinuationGate(
+                continuation: continuation,
+                connection: connection
+            )
+            let finish: (Result<T, Error>) -> Void = { result in
                 gate.resume(result)
             }
 
@@ -113,9 +115,14 @@ final class DaemonClient {
 private final class DaemonContinuationGate<Value>: @unchecked Sendable {
     private let lock = NSLock()
     private var continuation: CheckedContinuation<Value, Error>?
+    private var connection: NSXPCConnection?
 
-    init(continuation: CheckedContinuation<Value, Error>) {
+    init(
+        continuation: CheckedContinuation<Value, Error>,
+        connection: NSXPCConnection
+    ) {
         self.continuation = continuation
+        self.connection = connection
     }
 
     func resume(_ result: Result<Value, Error>) {
@@ -125,7 +132,11 @@ private final class DaemonContinuationGate<Value>: @unchecked Sendable {
             return
         }
         self.continuation = nil
+        let retainedConnection = connection
+        self.connection = nil
         lock.unlock()
+        retainedConnection?.invalidationHandler = nil
+        retainedConnection?.invalidate()
         continuation.resume(with: result)
     }
 }

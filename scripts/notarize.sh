@@ -14,13 +14,15 @@ artifact=$1
 [[ -f "$ASC_KEY_PATH" ]] || { echo "ASC_KEY_PATH does not point to a file" >&2; exit 66; }
 
 submission=$artifact
+temporary_dir=""
 temporary_zip=""
+trap '[[ -z "$temporary_zip" ]] || rm -f "$temporary_zip"; [[ -z "$temporary_dir" ]] || rmdir "$temporary_dir"' EXIT
 if [[ "$artifact" == *.app ]]; then
-  temporary_zip=$(mktemp /tmp/rouse-helper-notary.XXXXXX.zip)
+  temporary_dir=$(mktemp -d /tmp/rouse-helper-notary.XXXXXX)
+  temporary_zip="$temporary_dir/submission.zip"
   ditto -c -k --keepParent "$artifact" "$temporary_zip"
   submission=$temporary_zip
 fi
-trap '[[ -z "$temporary_zip" ]] || rm -f "$temporary_zip"' EXIT
 
 xcrun notarytool submit "$submission" \
   --key "$ASC_KEY_PATH" \
@@ -30,4 +32,3 @@ xcrun notarytool submit "$submission" \
 
 xcrun stapler staple "$artifact"
 xcrun stapler validate "$artifact"
-
