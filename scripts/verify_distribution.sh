@@ -8,10 +8,12 @@ fi
 
 app_path=$1
 dmg_path=$2
+app_executable="$app_path/Contents/MacOS/Rouse Closed-Lid Helper"
 daemon_path="$app_path/Contents/Library/HelperTools/RouseClosedLidDaemon"
 plist_path="$app_path/Contents/Library/LaunchDaemons/NA4X3TYR2P.com.jaminzhou.rouse.closed-lid-daemon.plist"
 
 [[ -d "$app_path" ]] || { echo "app not found: $app_path" >&2; exit 66; }
+[[ -x "$app_executable" ]] || { echo "app executable not found" >&2; exit 66; }
 [[ -x "$daemon_path" ]] || { echo "embedded daemon not found" >&2; exit 66; }
 [[ -f "$plist_path" ]] || { echo "launch daemon plist not found" >&2; exit 66; }
 [[ -f "$dmg_path" ]] || { echo "DMG not found: $dmg_path" >&2; exit 66; }
@@ -36,3 +38,17 @@ fi
 
 plutil -lint "$plist_path"
 
+lipo "$app_executable" -verify_arch arm64 x86_64
+lipo "$daemon_path" -verify_arch arm64 x86_64
+
+"$app_executable" --self-test
+"$daemon_path" --self-test
+
+if [[ "$(uname -m)" == "arm64" ]]; then
+  if ! arch -x86_64 /usr/bin/true >/dev/null 2>&1; then
+    echo "Rosetta is required to validate the x86_64 slices" >&2
+    exit 65
+  fi
+  arch -x86_64 "$app_executable" --self-test
+  arch -x86_64 "$daemon_path" --self-test
+fi
