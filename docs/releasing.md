@@ -56,8 +56,12 @@ the API key under `$RUNNER_TEMP`. Neither is included in the artifact.
 ## Delayed notarization
 
 The notarization script submits once, then polls the returned submission ID up
-to three times. If a local run is interrupted after Apple returns an ID, resume
-that exact artifact without uploading a duplicate:
+to three times. Submission output is streamed so the ID remains visible even if
+the command is interrupted. An ID is allocated before the artifact finishes
+uploading: if the command fails without printing `Successfully uploaded file`,
+inspect that ID with `notarytool info` and resume it only when Apple confirms
+the upload. If a local run is interrupted after a confirmed upload, resume that
+exact artifact without uploading a duplicate:
 
 ```bash
 NOTARY_SUBMISSION_ID=<submission-id> ./scripts/notarize.sh "<same app-or-dmg path>"

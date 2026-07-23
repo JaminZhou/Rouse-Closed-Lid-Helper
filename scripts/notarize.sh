@@ -52,7 +52,12 @@ if [[ -z "$submission_id" ]]; then
     exit "$submission_exit"
   fi
   if (( submission_exit != 0 )); then
-    echo "submission command exited with $submission_exit after returning $submission_id; polling that ID" >&2
+    if ! grep -Fq "Successfully uploaded file" "$submission_log"; then
+      echo "submission command exited with $submission_exit after returning $submission_id but before confirming upload" >&2
+      echo "inspect that ID with notarytool info; resume it only if Apple confirms the upload" >&2
+      exit "$submission_exit"
+    fi
+    echo "submission command exited with $submission_exit after confirming upload of $submission_id; polling that ID" >&2
   fi
 else
   if ! print -r -- "$submission_id" \
