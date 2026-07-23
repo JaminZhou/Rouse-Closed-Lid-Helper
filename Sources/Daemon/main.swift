@@ -21,13 +21,7 @@ let daemonVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersi
 let delegate = DaemonListenerDelegate(controller: controller, daemonVersion: daemonVersion)
 let listener = NSXPCListener(machServiceName: RouseClosedLidIPC.machServiceName)
 
-let acceptedClients = """
-anchor apple generic and certificate leaf[subject.OU] = "NA4X3TYR2P" and (
-    identifier \"com.jaminzhou.rouse\" or
-    identifier \"com.jaminzhou.rouse.closed-lid-helper\"
-)
-"""
-listener.setConnectionCodeSigningRequirement(acceptedClients)
+listener.setConnectionCodeSigningRequirement(RouseClosedLidIPC.acceptedClientCodeSigningRequirement)
 listener.delegate = delegate
 listener.activate()
 

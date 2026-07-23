@@ -78,6 +78,7 @@ final class DaemonClient {
                 options: .privileged
             )
             connection.remoteObjectInterface = NSXPCInterface(with: RouseClosedLidDaemonProtocol.self)
+            connection.setCodeSigningRequirement(RouseClosedLidIPC.daemonCodeSigningRequirement)
             let gate = DaemonContinuationGate(continuation: continuation)
             let finish: (Result<T, Error>) -> Void = { [weak connection] result in
                 connection?.invalidate()
