@@ -21,9 +21,11 @@ Do not create a public release until all of the following pass:
 Until this matrix passes, public copy must describe the feature as pre-release
 and must not promise closed-lid operation.
 
-The initial release may ship after the Apple silicon matrix and universal-binary
-checks pass. Record Intel real-device coverage separately when it becomes
-available; do not describe Rosetta validation as an Intel real-device result.
+Intel real-device coverage is the only exception for the initial release: all
+other gates above must pass, including the Apple silicon matrix and
+universal-binary checks. Record Intel real-device coverage separately when it
+becomes available; do not describe Rosetta validation as an Intel real-device
+result.
 
 ## GitHub Actions secrets
 
