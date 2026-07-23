@@ -6,7 +6,9 @@ daemon on macOS 13 or later.
 
 > **Pre-release:** no downloadable build is published yet. A signed and
 > notarized release will only be published after the real-device safety matrix
-> passes on Apple silicon and Intel Macs.
+> passes on Apple silicon and both slices of the universal binary are verified.
+> Intel real-device coverage is tracked separately and is not inferred from
+> Rosetta validation.
 
 ## Why a separate helper?
 

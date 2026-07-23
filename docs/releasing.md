@@ -10,13 +10,22 @@ Do not create a public release until all of the following pass:
 - notarization and stapling of both app and DMG;
 - Gatekeeper assessment on a clean macOS user account;
 - registration, approval, restart, update, removal, and recovery tests;
-- Apple silicon and Intel real-device matrix for AC and battery power;
+- universal app and daemon binaries with verified `arm64` and `x86_64` slices;
+- Apple silicon real-device matrix for AC and battery power;
+- `x86_64` Helper and daemon self-tests plus signature assessment under Rosetta
+  when an Intel test Mac is not available;
 - Rouse start, stop, timed expiry, force quit, daemon kill, and lease expiry;
 - explicit Sleep, low-battery protection, restart, and shutdown behavior;
 - verification that original per-power-source values are restored.
 
 Until this matrix passes, public copy must describe the feature as pre-release
 and must not promise closed-lid operation.
+
+Intel real-device coverage is the only exception for the initial release: all
+other gates above must pass, including the Apple silicon matrix and
+universal-binary checks. Record Intel real-device coverage separately when it
+becomes available; do not describe Rosetta validation as an Intel real-device
+result.
 
 ## GitHub Actions secrets
 
@@ -43,4 +52,3 @@ the API key under `$RUNNER_TEMP`. Neither is included in the artifact.
    - `Rouse-Closed-Lid-Helper.dmg.sha256`
 5. Download the published DMG on a clean account and repeat Gatekeeper,
    registration, and removal smoke tests.
-

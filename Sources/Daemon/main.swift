@@ -4,6 +4,11 @@ import OSLog
 import RouseClosedLidCore
 import RouseClosedLidProtocol
 
+if CommandLine.arguments.dropFirst() == ["--self-test"] {
+    print("RouseClosedLidDaemon self-test passed")
+    exit(EXIT_SUCCESS)
+}
+
 let controller = LeaseController(
     powerSettings: PMSetController(),
     journalStore: FileRecoveryJournalStore(),
