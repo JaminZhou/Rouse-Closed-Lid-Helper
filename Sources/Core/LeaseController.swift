@@ -27,7 +27,9 @@ public final class LeaseController: @unchecked Sendable {
     private let powerSettings: any PowerSettingsControlling
     private let journalStore: any RecoveryJournalStoring
     private let maximumLeaseDuration: TimeInterval
-    private var leases: [UUID: Date] = [:]
+    private let wallClockNow: @Sendable () -> Date
+    private let monotonicNow: @Sendable () -> ContinuousClock.Instant
+    private var leases: [UUID: ContinuousClock.Instant] = [:]
 
     public init(
         powerSettings: any PowerSettingsControlling,
@@ -37,6 +39,22 @@ public final class LeaseController: @unchecked Sendable {
         self.powerSettings = powerSettings
         self.journalStore = journalStore
         self.maximumLeaseDuration = maximumLeaseDuration
+        wallClockNow = { Date() }
+        monotonicNow = { ContinuousClock().now }
+    }
+
+    init(
+        powerSettings: any PowerSettingsControlling,
+        journalStore: any RecoveryJournalStoring,
+        maximumLeaseDuration: TimeInterval = 120,
+        wallClockNow: @escaping @Sendable () -> Date,
+        monotonicNow: @escaping @Sendable () -> ContinuousClock.Instant
+    ) {
+        self.powerSettings = powerSettings
+        self.journalStore = journalStore
+        self.maximumLeaseDuration = maximumLeaseDuration
+        self.wallClockNow = wallClockNow
+        self.monotonicNow = monotonicNow
     }
 
     public func recoverInterruptedOverride() throws {
@@ -49,8 +67,7 @@ public final class LeaseController: @unchecked Sendable {
     @discardableResult
     public func renewLease(
         clientID: UUID,
-        duration: TimeInterval,
-        now: Date = Date()
+        duration: TimeInterval
     ) throws -> LeaseControllerStatus {
         guard duration > 0, duration <= maximumLeaseDuration else {
             throw LeaseControllerError.invalidDuration
@@ -59,12 +76,14 @@ public final class LeaseController: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        try expireLeasesLocked(now: now)
+        let wallNow = wallClockNow()
+        let monotonicNow = monotonicNow()
+        try expireLeasesLocked(now: monotonicNow)
         if leases.isEmpty {
-            try activateOverride(now: now)
+            try activateOverride(now: wallNow)
         }
-        leases[clientID] = now.addingTimeInterval(duration)
-        return statusLocked()
+        leases[clientID] = monotonicNow.advanced(by: .seconds(duration))
+        return statusLocked(wallNow: wallNow, monotonicNow: monotonicNow)
     }
 
     @discardableResult
@@ -75,15 +94,17 @@ public final class LeaseController: @unchecked Sendable {
         if leases.isEmpty {
             try restoreFromJournalIfNeeded()
         }
-        return statusLocked()
+        return statusLocked(wallNow: wallClockNow(), monotonicNow: monotonicNow())
     }
 
     @discardableResult
-    public func expireLeases(now: Date = Date()) throws -> LeaseControllerStatus {
+    public func expireLeases() throws -> LeaseControllerStatus {
         lock.lock()
         defer { lock.unlock() }
-        try expireLeasesLocked(now: now)
-        return statusLocked()
+        let wallNow = wallClockNow()
+        let monotonicNow = monotonicNow()
+        try expireLeasesLocked(now: monotonicNow)
+        return statusLocked(wallNow: wallNow, monotonicNow: monotonicNow)
     }
 
     @discardableResult
@@ -92,13 +113,13 @@ public final class LeaseController: @unchecked Sendable {
         defer { lock.unlock() }
         leases.removeAll()
         try restoreFromJournalIfNeeded()
-        return statusLocked()
+        return statusLocked(wallNow: wallClockNow(), monotonicNow: monotonicNow())
     }
 
     public func status() -> LeaseControllerStatus {
         lock.lock()
         defer { lock.unlock() }
-        return statusLocked()
+        return statusLocked(wallNow: wallClockNow(), monotonicNow: monotonicNow())
     }
 
     private func activateOverride(now: Date) throws {
@@ -122,7 +143,7 @@ public final class LeaseController: @unchecked Sendable {
         }
     }
 
-    private func expireLeasesLocked(now: Date) throws {
+    private func expireLeasesLocked(now: ContinuousClock.Instant) throws {
         leases = leases.filter { $0.value > now }
         if leases.isEmpty {
             try restoreFromJournalIfNeeded()
@@ -135,12 +156,25 @@ public final class LeaseController: @unchecked Sendable {
         try journalStore.clear()
     }
 
-    private func statusLocked() -> LeaseControllerStatus {
+    private func statusLocked(
+        wallNow: Date,
+        monotonicNow: ContinuousClock.Instant
+    ) -> LeaseControllerStatus {
         LeaseControllerStatus(
             isActive: !leases.isEmpty && journalStore.exists,
             leaseCount: leases.count,
-            nextExpiry: leases.values.min(),
+            nextExpiry: leases.values.min().map {
+                wallNow.addingTimeInterval(monotonicNow.duration(to: $0).timeInterval)
+            },
             recoveryJournalPresent: journalStore.exists
         )
+    }
+}
+
+private extension Duration {
+    var timeInterval: TimeInterval {
+        let components = self.components
+        return TimeInterval(components.seconds)
+            + TimeInterval(components.attoseconds) / 1_000_000_000_000_000_000
     }
 }

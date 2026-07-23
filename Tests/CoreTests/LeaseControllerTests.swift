@@ -10,10 +10,9 @@ final class LeaseControllerTests: XCTestCase {
         let controller = LeaseController(powerSettings: power, journalStore: journal)
         let firstClient = UUID()
         let secondClient = UUID()
-        let now = Date(timeIntervalSince1970: 1_000)
 
-        try controller.renewLease(clientID: firstClient, duration: 60, now: now)
-        try controller.renewLease(clientID: secondClient, duration: 90, now: now)
+        try controller.renewLease(clientID: firstClient, duration: 60)
+        try controller.renewLease(clientID: secondClient, duration: 90)
 
         XCTAssertEqual(power.events, [.capture, .enable])
         XCTAssertTrue(journal.exists)
@@ -30,13 +29,42 @@ final class LeaseControllerTests: XCTestCase {
     func testExpiredLeaseRestoresSettings() throws {
         let power = FakePowerSettings(snapshot: original)
         let journal = MemoryJournalStore()
-        let controller = LeaseController(powerSettings: power, journalStore: journal)
-        let now = Date(timeIntervalSince1970: 2_000)
+        let clock = TestLeaseClock(wallNow: Date(timeIntervalSince1970: 2_000))
+        let controller = LeaseController(
+            powerSettings: power,
+            journalStore: journal,
+            wallClockNow: { clock.wallNow },
+            monotonicNow: { clock.monotonicNow }
+        )
 
-        try controller.renewLease(clientID: UUID(), duration: 30, now: now)
-        let status = try controller.expireLeases(now: now.addingTimeInterval(31))
+        try controller.renewLease(clientID: UUID(), duration: 30)
+        clock.advance(wallTime: 31, monotonicTime: .seconds(31))
+        let status = try controller.expireLeases()
 
         XCTAssertFalse(status.isActive)
+        XCTAssertEqual(power.events, [.capture, .enable, .restore(original)])
+        XCTAssertFalse(journal.exists)
+    }
+
+    func testBackwardWallClockChangeDoesNotExtendLease() throws {
+        let power = FakePowerSettings(snapshot: original)
+        let journal = MemoryJournalStore()
+        let initialWallTime = Date(timeIntervalSince1970: 2_500)
+        let clock = TestLeaseClock(wallNow: initialWallTime)
+        let controller = LeaseController(
+            powerSettings: power,
+            journalStore: journal,
+            wallClockNow: { clock.wallNow },
+            monotonicNow: { clock.monotonicNow }
+        )
+
+        let renewed = try controller.renewLease(clientID: UUID(), duration: 30)
+        XCTAssertEqual(renewed.nextExpiry, initialWallTime.addingTimeInterval(30))
+
+        clock.advance(wallTime: -3_600, monotonicTime: .seconds(31))
+        let expired = try controller.expireLeases()
+
+        XCTAssertFalse(expired.isActive)
         XCTAssertEqual(power.events, [.capture, .enable, .restore(original)])
         XCTAssertFalse(journal.exists)
     }
@@ -91,6 +119,20 @@ final class LeaseControllerTests: XCTestCase {
 
 private enum TestError: Error {
     case expected
+}
+
+private final class TestLeaseClock: @unchecked Sendable {
+    var wallNow: Date
+    var monotonicNow = ContinuousClock().now
+
+    init(wallNow: Date) {
+        self.wallNow = wallNow
+    }
+
+    func advance(wallTime: TimeInterval, monotonicTime: Duration) {
+        wallNow = wallNow.addingTimeInterval(wallTime)
+        monotonicNow = monotonicNow.advanced(by: monotonicTime)
+    }
 }
 
 private final class FakePowerSettings: PowerSettingsControlling, @unchecked Sendable {
