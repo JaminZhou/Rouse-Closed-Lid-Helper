@@ -153,15 +153,23 @@ final class HelperServiceManager: ObservableObject {
     func restoreAndRemove() async {
         isWorking = true
         errorMessage = nil
+        var restoreErrorMessage: String?
         do {
             if service.status == .enabled {
-                try await client.restoreOriginalSettings()
+                do {
+                    try await client.restoreOriginalSettings()
+                } catch {
+                    restoreErrorMessage = error.localizedDescription
+                }
             }
             if service.status != .notRegistered {
                 try await service.unregister()
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+        if errorMessage == nil {
+            errorMessage = restoreErrorMessage
         }
         isWorking = false
         await refresh()
