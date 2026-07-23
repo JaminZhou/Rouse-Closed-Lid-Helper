@@ -94,7 +94,7 @@ for attempt in 1 2 3; do
       accepted=true
       break
       ;;
-    Invalid)
+    Invalid|Rejected)
       xcrun notarytool log "$submission_id" "${authentication_arguments[@]}" || true
       exit 65
       ;;
