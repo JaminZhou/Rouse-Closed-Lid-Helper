@@ -16,7 +16,8 @@ artifact=$1
 submission=$artifact
 temporary_dir=""
 temporary_zip=""
-trap '[[ -z "$temporary_zip" ]] || rm -f "$temporary_zip"; [[ -z "$temporary_dir" ]] || rmdir "$temporary_dir"' EXIT
+submission_log=""
+trap '[[ -z "$submission_log" ]] || rm -f "$submission_log"; [[ -z "$temporary_zip" ]] || rm -f "$temporary_zip"; [[ -z "$temporary_dir" ]] || rmdir "$temporary_dir"' EXIT
 if [[ "$artifact" == *.app ]]; then
   temporary_dir=$(mktemp -d /tmp/rouse-helper-notary.XXXXXX)
   temporary_zip="$temporary_dir/submission.zip"
@@ -33,16 +34,15 @@ wait_timeout=${NOTARY_WAIT_TIMEOUT:-10m}
 submission_id=${NOTARY_SUBMISSION_ID:-}
 
 if [[ -z "$submission_id" ]]; then
+  submission_log=$(mktemp /tmp/rouse-helper-notary-submit.XXXXXX)
   set +e
-  submission_output=$(xcrun notarytool submit "$submission" \
+  xcrun notarytool submit "$submission" \
     "${authentication_arguments[@]}" \
-    --no-progress 2>&1)
-  submission_exit=$?
+    --no-progress 2>&1 | tee "$submission_log"
+  submission_exit=$pipestatus[1]
   set -e
-  print -r -- "$submission_output"
 
-  submission_id=$(print -r -- "$submission_output" \
-    | sed -nE 's/.*([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}).*/\1/p' \
+  submission_id=$(sed -nE 's/.*([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}).*/\1/p' "$submission_log" \
     | head -n 1)
   if [[ -z "$submission_id" ]]; then
     echo "notary submission did not return an ID" >&2
