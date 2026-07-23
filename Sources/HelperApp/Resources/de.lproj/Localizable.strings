@@ -5,6 +5,7 @@
 "status_not_installed" = "Der privilegierte Dienst ist nicht installiert.";
 "status_requires_approval" = "In den Systemeinstellungen ist eine Administratorgenehmigung erforderlich.";
 "status_update_required" = "Dienst %@ muss auf %@ aktualisiert werden.";
+"status_recovery_required" = "Dienst %@ muss die vorherigen Energieeinstellungen wiederherstellen.";
 "status_ready" = "Dienst %@ ist bereit.";
 "status_active" = "Dienst %@ hält die aktuelle Rouse-Sitzung wach.";
 "status_unavailable" = "Der privilegierte Dienst ist nicht verfügbar.";

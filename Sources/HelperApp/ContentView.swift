@@ -93,6 +93,12 @@ struct ContentView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(serviceManager.isWorking)
+        case .recoveryRequired:
+            Button("repair_service") {
+                Task { await serviceManager.repairOrUpdate() }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(serviceManager.isWorking)
         case .requiresApproval:
             Button("open_system_settings") {
                 serviceManager.openApprovalSettings()
@@ -116,7 +122,7 @@ struct ContentView: View {
         switch serviceManager.status {
         case .notRegistered, .notInApplications:
             return false
-        case .requiresApproval, .updateRequired, .enabled, .unavailable:
+        case .requiresApproval, .updateRequired, .recoveryRequired, .enabled, .unavailable:
             return true
         }
     }
@@ -127,6 +133,7 @@ struct ContentView: View {
         case .enabled: "checkmark.circle.fill"
         case .requiresApproval: "person.badge.key.fill"
         case .updateRequired: "arrow.triangle.2.circlepath.circle.fill"
+        case .recoveryRequired: "exclamationmark.triangle.fill"
         case .notInApplications: "folder.fill"
         case .notRegistered: "circle.dashed"
         case .unavailable: "exclamationmark.triangle.fill"

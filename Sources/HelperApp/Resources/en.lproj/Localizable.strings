@@ -5,6 +5,7 @@
 "status_not_installed" = "The privileged service is not installed.";
 "status_requires_approval" = "Administrator approval is required in System Settings.";
 "status_update_required" = "Service %@ must be updated to %@.";
+"status_recovery_required" = "Service %@ must restore the previous power settings.";
 "status_ready" = "Service %@ is ready.";
 "status_active" = "Service %@ is keeping the current Rouse session awake.";
 "status_unavailable" = "The privileged service is unavailable.";

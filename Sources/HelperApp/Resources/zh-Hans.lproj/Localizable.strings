@@ -5,6 +5,7 @@
 "status_not_installed" = "特权服务尚未安装。";
 "status_requires_approval" = "需要在“系统设置”中获得管理员批准。";
 "status_update_required" = "服务 %@ 需要更新到 %@。";
+"status_recovery_required" = "服务 %@ 需要恢复之前的电源设置。";
 "status_ready" = "服务 %@ 已就绪。";
 "status_active" = "服务 %@ 正在保持当前 Rouse 会话唤醒。";
 "status_unavailable" = "特权服务当前不可用。";

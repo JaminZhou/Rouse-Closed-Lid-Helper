@@ -8,6 +8,7 @@ enum HelperServiceStatus: Equatable {
     case notRegistered
     case requiresApproval
     case updateRequired(installedVersion: String, bundledVersion: String)
+    case recoveryRequired(daemonVersion: String)
     case enabled(daemonVersion: String, active: Bool)
     case unavailable
 
@@ -24,6 +25,11 @@ enum HelperServiceStatus: Equatable {
                 format: NSLocalizedString("status_update_required", comment: ""),
                 installedVersion,
                 bundledVersion
+            )
+        case let .recoveryRequired(daemonVersion):
+            return String(
+                format: NSLocalizedString("status_recovery_required", comment: ""),
+                daemonVersion
             )
         case let .enabled(daemonVersion, active):
             return String(
@@ -82,6 +88,10 @@ final class HelperServiceManager: ObservableObject {
                         installedVersion: daemonStatus.daemonVersion,
                         bundledVersion: bundledVersion
                     )
+                    return
+                }
+                guard !daemonStatus.recoveryJournalPresent || daemonStatus.isActive else {
+                    status = .recoveryRequired(daemonVersion: daemonStatus.daemonVersion)
                     return
                 }
                 status = .enabled(daemonVersion: daemonStatus.daemonVersion, active: daemonStatus.isActive)

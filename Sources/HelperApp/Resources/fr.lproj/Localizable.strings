@@ -5,6 +5,7 @@
 "status_not_installed" = "Le service privilégié n’est pas installé.";
 "status_requires_approval" = "L’autorisation d’un administrateur est requise dans Réglages Système.";
 "status_update_required" = "Le service %@ doit être mis à jour vers %@.";
+"status_recovery_required" = "Le service %@ doit restaurer les réglages d’énergie précédents.";
 "status_ready" = "Le service %@ est prêt.";
 "status_active" = "Le service %@ maintient la session Rouse actuelle active.";
 "status_unavailable" = "Le service privilégié est indisponible.";

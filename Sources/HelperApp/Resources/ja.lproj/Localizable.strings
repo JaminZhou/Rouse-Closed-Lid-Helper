@@ -5,6 +5,7 @@
 "status_not_installed" = "特権サービスはインストールされていません。";
 "status_requires_approval" = "システム設定で管理者の承認が必要です。";
 "status_update_required" = "サービス %@ を %@ に更新する必要があります。";
+"status_recovery_required" = "サービス %@ は以前の電源設定を復元する必要があります。";
 "status_ready" = "サービス %@ の準備ができました。";
 "status_active" = "サービス %@ が現在の Rouse セッションを稼働状態に保っています。";
 "status_unavailable" = "特権サービスを利用できません。";

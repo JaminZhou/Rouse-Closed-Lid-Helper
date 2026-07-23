@@ -5,6 +5,7 @@
 "status_not_installed" = "O serviço privilegiado não está instalado.";
 "status_requires_approval" = "É necessária a aprovação de um administrador nos Ajustes do Sistema.";
 "status_update_required" = "O serviço %@ precisa ser atualizado para %@.";
+"status_recovery_required" = "O serviço %@ precisa restaurar os ajustes de energia anteriores.";
 "status_ready" = "O serviço %@ está pronto.";
 "status_active" = "O serviço %@ está mantendo a sessão atual do Rouse ativa.";
 "status_unavailable" = "O serviço privilegiado não está disponível.";

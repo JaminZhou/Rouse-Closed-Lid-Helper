@@ -5,6 +5,7 @@
 "status_not_installed" = "권한 있는 서비스가 설치되지 않았습니다.";
 "status_requires_approval" = "시스템 설정에서 관리자 승인이 필요합니다.";
 "status_update_required" = "서비스 %@을(를) %@ 버전으로 업데이트해야 합니다.";
+"status_recovery_required" = "서비스 %@에서 이전 전원 설정을 복원해야 합니다.";
 "status_ready" = "서비스 %@이(가) 준비되었습니다.";
 "status_active" = "서비스 %@이(가) 현재 Rouse 세션을 깨우고 있습니다.";
 "status_unavailable" = "권한 있는 서비스를 사용할 수 없습니다.";
