@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.jaminzhou.rouse.closed-lid-helper.daemon</string>
+	<key>BundleProgram</key>
+	<string>Contents/Library/HelperTools/RouseClosedLidDaemon</string>
+	<key>MachServices</key>
+	<dict>
+		<key>NA4X3TYR2P.com.jaminzhou.rouse.closed-lid-daemon</key>
+		<true/>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>ThrottleInterval</key>
+	<integer>5</integer>
+</dict>
+</plist>
+
