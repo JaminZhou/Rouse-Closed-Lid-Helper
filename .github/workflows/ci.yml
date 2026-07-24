@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build-and-test:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -21,10 +21,25 @@ jobs:
         with:
           install: true
           cache: true
+      - name: Verify Xcode 26
+        run: |
+          xcode_version=$(xcodebuild -version | awk 'NR == 1 { print $2 }')
+          test "${xcode_version%%.*}" = "26"
+          xcodebuild -version
       - name: Lint
         run: make lint
       - name: Build
         run: make build
+      - name: Verify app icon
+        run: |
+          app_path=$(
+            find "$HOME/Library/Developer/Xcode/DerivedData" \
+              -path '*/Build/Products/Debug/Rouse Closed-Lid Helper.app' \
+              -print |
+              head -n 1
+          )
+          test -n "$app_path"
+          test -s "$app_path/Contents/Resources/AppIcon.icns"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$app_path/Contents/Info.plist")" = "AppIcon"
       - name: Test
         run: make test
-

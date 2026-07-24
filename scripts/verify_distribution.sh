@@ -11,12 +11,17 @@ dmg_path=$2
 app_executable="$app_path/Contents/MacOS/Rouse Closed-Lid Helper"
 daemon_path="$app_path/Contents/Library/HelperTools/RouseClosedLidDaemon"
 plist_path="$app_path/Contents/Library/LaunchDaemons/NA4X3TYR2P.com.jaminzhou.rouse.closed-lid-daemon.plist"
+app_icon_path="$app_path/Contents/Resources/AppIcon.icns"
 
 [[ -d "$app_path" ]] || { echo "app not found: $app_path" >&2; exit 66; }
 [[ -x "$app_executable" ]] || { echo "app executable not found" >&2; exit 66; }
 [[ -x "$daemon_path" ]] || { echo "embedded daemon not found" >&2; exit 66; }
 [[ -f "$plist_path" ]] || { echo "launch daemon plist not found" >&2; exit 66; }
+[[ -s "$app_icon_path" ]] || { echo "app icon not found" >&2; exit 66; }
 [[ -f "$dmg_path" ]] || { echo "DMG not found: $dmg_path" >&2; exit 66; }
+
+app_icon_name=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIconName" "$app_path/Contents/Info.plist")
+[[ "$app_icon_name" == "AppIcon" ]] || { echo "unexpected app icon name: $app_icon_name" >&2; exit 65; }
 
 codesign --verify --deep --strict --verbose=2 "$app_path"
 codesign --verify --strict --verbose=2 "$daemon_path"

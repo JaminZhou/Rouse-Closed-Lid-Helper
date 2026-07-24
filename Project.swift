@@ -107,6 +107,7 @@ let helperTarget: Target = .target(
         "PRODUCT_BUNDLE_IDENTIFIER": "com.jaminzhou.rouse.closed-lid-helper",
         "PRODUCT_NAME": "Rouse Closed-Lid Helper",
         "CODE_SIGN_ENTITLEMENTS": "Entitlements/Helper.entitlements",
+        "ASSETCATALOG_COMPILER_APPICON_NAME": .string("AppIcon"),
         "MARKETING_VERSION": .string(appVersion),
         "CURRENT_PROJECT_VERSION": .string(buildNumber),
     ]) { _, new in new })
