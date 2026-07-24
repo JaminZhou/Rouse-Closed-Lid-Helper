@@ -60,10 +60,14 @@ final class HelperServiceManager: ObservableObject {
         return path.hasPrefix("/Applications/")
     }
 
-    func refresh() async {
+    func refresh(clearExistingError: Bool = true) async {
         guard !isWorking else { return }
         isWorking = true
         defer { isWorking = false }
+
+        if clearExistingError {
+            errorMessage = nil
+        }
 
         guard isInstalledInApplications else {
             status = .notInApplications
@@ -71,7 +75,11 @@ final class HelperServiceManager: ObservableObject {
         }
 
         switch service.status {
-        case .notRegistered:
+        case .notRegistered, .notFound:
+            // A bundled daemon that has never been registered can report
+            // `.notFound` on current macOS releases. Registration is still the
+            // correct first action; any malformed or missing bundled plist is
+            // surfaced by `register()`.
             status = .notRegistered
         case .requiresApproval:
             status = .requiresApproval
@@ -99,8 +107,6 @@ final class HelperServiceManager: ObservableObject {
                 status = .unavailable
                 errorMessage = error.localizedDescription
             }
-        case .notFound:
-            status = .unavailable
         @unknown default:
             status = .unavailable
         }
@@ -114,14 +120,19 @@ final class HelperServiceManager: ObservableObject {
         isWorking = true
         errorMessage = nil
         do {
-            if service.status == .notRegistered {
-                try service.register()
+            switch service.status {
+            case .notRegistered, .notFound:
+                try registerService()
+            case .requiresApproval, .enabled:
+                break
+            @unknown default:
+                break
             }
         } catch {
             errorMessage = error.localizedDescription
         }
         isWorking = false
-        await refresh()
+        await refresh(clearExistingError: false)
     }
 
     func repairOrUpdate() async {
@@ -141,15 +152,25 @@ final class HelperServiceManager: ObservableObject {
                     // will restore any settings recorded in the recovery journal.
                 }
             }
-            if service.status != .notRegistered {
+
+            switch service.status {
+            case .enabled, .requiresApproval:
                 try await service.unregister()
+                // Service Management may reject an immediate unregister/register
+                // pair even after the async unregister call returns. Yield a short
+                // interval before re-enrolling the same bundled daemon.
+                try await Task.sleep(nanoseconds: 500_000_000)
+            case .notRegistered, .notFound:
+                break
+            @unknown default:
+                break
             }
-            try service.register()
+            try registerService()
         } catch {
             errorMessage = error.localizedDescription
         }
         isWorking = false
-        await refresh()
+        await refresh(clearExistingError: false)
     }
 
     func openApprovalSettings() {
@@ -172,8 +193,18 @@ final class HelperServiceManager: ObservableObject {
                     restoreErrorMessage = error.localizedDescription
                 }
             }
-            if service.status != .notRegistered {
+
+            switch service.status {
+            case .enabled, .requiresApproval, .notFound:
+                // `notFound` is also possible after a failed re-registration.
+                // Attempt unregistration so a stale Service Management record
+                // remains recoverable from the same UI state used by a clean
+                // first install.
                 try await service.unregister()
+            case .notRegistered:
+                break
+            @unknown default:
+                break
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -182,6 +213,20 @@ final class HelperServiceManager: ObservableObject {
             errorMessage = restoreErrorMessage
         }
         isWorking = false
-        await refresh()
+        await refresh(clearExistingError: false)
+    }
+
+    private func registerService() throws {
+        do {
+            try service.register()
+        } catch {
+            // Current macOS releases can return EPERM after successfully adding
+            // a daemon that still needs approval. The status is authoritative:
+            // keep the real error only when registration did not reach that
+            // expected intermediate state.
+            guard service.status == .requiresApproval else {
+                throw error
+            }
+        }
     }
 }
