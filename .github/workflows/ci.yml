@@ -21,10 +21,32 @@ jobs:
         with:
           install: true
           cache: true
+      - name: Select Xcode 26
+        run: |
+          xcode_path=$(
+            find /Applications -maxdepth 1 \( -type d -o -type l \) -name 'Xcode_26*.app' -print |
+              awk '/\/Xcode_26(\.[0-9]+){1,2}\.app$/ { print }' |
+              sort -V |
+              tail -n 1
+          )
+          test -n "$xcode_path"
+          developer_dir="$xcode_path/Contents/Developer"
+          echo "DEVELOPER_DIR=$developer_dir" >> "$GITHUB_ENV"
+          DEVELOPER_DIR="$developer_dir" xcodebuild -version
       - name: Lint
         run: make lint
       - name: Build
         run: make build
+      - name: Verify app icon
+        run: |
+          app_path=$(
+            find "$HOME/Library/Developer/Xcode/DerivedData" \
+              -path '*/Build/Products/Debug/Rouse Closed-Lid Helper.app' \
+              -print |
+              head -n 1
+          )
+          test -n "$app_path"
+          test -s "$app_path/Contents/Resources/AppIcon.icns"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconName' "$app_path/Contents/Info.plist")" = "AppIcon"
       - name: Test
         run: make test
-
