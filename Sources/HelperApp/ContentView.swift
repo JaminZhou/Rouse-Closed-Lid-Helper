@@ -120,9 +120,9 @@ struct ContentView: View {
 
     private var canRemove: Bool {
         switch serviceManager.status {
-        case .notRegistered, .notInApplications:
+        case .notInApplications:
             return false
-        case .requiresApproval, .updateRequired, .recoveryRequired, .enabled, .unavailable:
+        case .notRegistered, .requiresApproval, .updateRequired, .recoveryRequired, .enabled, .unavailable:
             return true
         }
     }

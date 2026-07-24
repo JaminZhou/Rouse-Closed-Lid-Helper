@@ -195,9 +195,13 @@ final class HelperServiceManager: ObservableObject {
             }
 
             switch service.status {
-            case .enabled, .requiresApproval:
+            case .enabled, .requiresApproval, .notFound:
+                // `notFound` is also possible after a failed re-registration.
+                // Attempt unregistration so a stale Service Management record
+                // remains recoverable from the same UI state used by a clean
+                // first install.
                 try await service.unregister()
-            case .notRegistered, .notFound:
+            case .notRegistered:
                 break
             @unknown default:
                 break
