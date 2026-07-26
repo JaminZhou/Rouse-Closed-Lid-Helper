@@ -2,7 +2,9 @@
 
 ## Release gate
 
-Do not create a public release until all of the following pass:
+Do not create a public release until all of the following pass, unless a
+version-specific exception below explicitly authorizes the release and records
+each deferred check as not passed:
 
 - unit tests and unsigned CI build;
 - Developer ID archive and export;
@@ -19,13 +21,51 @@ Do not create a public release until all of the following pass:
 - verification that original per-power-source values are restored.
 
 Until this matrix passes, public copy must describe the feature as pre-release
-and must not promise closed-lid operation.
+and must not promise closed-lid operation, unless a version-specific exception
+below authorizes release. Public copy for an excepted release must disclose the
+deferred coverage and must not describe those checks as passed.
 
-Intel real-device coverage is the only exception for the initial release: all
-other gates above must pass, including the Apple silicon matrix and
-universal-binary checks. Record Intel real-device coverage separately when it
-becomes available; do not describe Rosetta validation as an Intel real-device
-result.
+Without a version-specific exception recorded below, Intel real-device coverage
+is the only initial-release exception: all other gates above must pass,
+including the Apple silicon matrix and universal-binary checks. Record Intel
+real-device coverage separately when it becomes available; do not describe
+Rosetta validation as an Intel real-device result.
+
+### v1.0.0 recorded validation exception
+
+The initial `v1.0.0` release was authorized on 2026-07-26 with a documented
+deferral of disruptive real-device checks so active user workloads would not be
+interrupted. This release-specific risk acceptance explicitly overrides the
+listed gate items for `v1.0.0`; it is not evidence that the deferred checks
+passed and does not carry forward to later versions.
+
+Verified before the release decision:
+
+- Developer ID signing, notarization, stapling, Gatekeeper assessment, and
+  universal `arm64` / `x86_64` distribution checks;
+- native and Rosetta Helper and daemon self-tests;
+- service registration, approval, removal, and reinstall smoke tests;
+- integration with Rouse `1.11.0` TestFlight build `202607261128`, including
+  the expected team identifier, App Group, and sandbox entitlements;
+- ready and active XPC states, normal stop, 45-second timed expiry, Rouse force
+  quit, 120-second bounded lease expiry, and toggling the Helper during an
+  active Rouse session;
+- exact restoration to `SleepDisabled 0` with recovery-journal cleanup after
+  every completed recovery check; and
+- closed-lid operation on Apple silicon while connected to AC power.
+
+Deferred and therefore not recorded as passed:
+
+- closed-lid battery operation and AC-to-battery transitions;
+- explicit Sleep and low-battery protection on a real device;
+- forced daemon restart during an active lease;
+- full system restart and shutdown recovery;
+- clean-account validation of the published release artifact; and
+- an in-place update from an older public Helper release.
+
+Complete and record these items when they can be run without interrupting active
+workloads. Future release notes and public claims must continue to distinguish
+verified checks from these deferred checks.
 
 ## GitHub Actions secrets
 
