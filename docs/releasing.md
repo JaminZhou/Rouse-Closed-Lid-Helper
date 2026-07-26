@@ -27,6 +27,41 @@ universal-binary checks. Record Intel real-device coverage separately when it
 becomes available; do not describe Rosetta validation as an Intel real-device
 result.
 
+### v1.0.0 recorded validation exception
+
+The initial `v1.0.0` release was authorized on 2026-07-26 with a documented
+deferral of disruptive real-device checks so active user workloads would not be
+interrupted. This is a release-specific risk acceptance, not evidence that the
+deferred checks passed and not a change to the general release gate above.
+
+Verified before the release decision:
+
+- Developer ID signing, notarization, stapling, Gatekeeper assessment, and
+  universal `arm64` / `x86_64` distribution checks;
+- native and Rosetta Helper and daemon self-tests;
+- service registration, approval, removal, and reinstall smoke tests;
+- integration with Rouse `1.11.0` TestFlight build `202607261128`, including
+  the expected team identifier, App Group, and sandbox entitlements;
+- ready and active XPC states, normal stop, 45-second timed expiry, Rouse force
+  quit, 120-second bounded lease expiry, and toggling the Helper during an
+  active Rouse session;
+- exact restoration to `SleepDisabled 0` with recovery-journal cleanup after
+  every completed recovery check; and
+- closed-lid operation on Apple silicon while connected to AC power.
+
+Deferred and therefore not recorded as passed:
+
+- closed-lid battery operation and AC-to-battery transitions;
+- explicit Sleep and low-battery protection on a real device;
+- forced daemon restart during an active lease;
+- full system restart and shutdown recovery;
+- clean-account validation of the published release artifact; and
+- an in-place update from an older public Helper release.
+
+Complete and record these items when they can be run without interrupting active
+workloads. Future release notes and public claims must continue to distinguish
+verified checks from these deferred checks.
+
 ## GitHub Actions secrets
 
 Configure the following repository secrets:

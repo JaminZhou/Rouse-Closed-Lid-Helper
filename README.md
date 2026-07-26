@@ -4,11 +4,15 @@ An optional, open-source companion for [Rouse](https://jaminzhou.com/rouse/) tha
 uses Apple's Service Management framework to manage a narrowly scoped privileged
 daemon on macOS 13 or later.
 
-> **Pre-release:** no downloadable build is published yet. A signed and
-> notarized release will only be published after the real-device safety matrix
-> passes on Apple silicon and both slices of the universal binary are verified.
-> Intel real-device coverage is tracked separately and is not inferred from
-> Rosetta validation.
+> **Download:** use the
+> [latest GitHub release](https://github.com/JaminZhou/Rouse-Closed-Lid-Helper/releases/latest)
+> for the Developer ID-signed and Apple-notarized DMG. The initial release
+> verifies the signed Rouse TestFlight integration and the core bounded-recovery
+> paths on Apple silicon. Disruptive battery, explicit-sleep, daemon-restart,
+> and full power-cycle coverage is recorded separately in
+> [`docs/releasing.md`](docs/releasing.md), rather than being inferred from
+> automated tests. Intel real-device coverage is also tracked separately and is
+> not inferred from Rosetta validation.
 
 ## Why a separate helper?
 
