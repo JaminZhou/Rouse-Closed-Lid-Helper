@@ -2,7 +2,9 @@
 
 ## Release gate
 
-Do not create a public release until all of the following pass:
+Do not create a public release until all of the following pass, unless a
+version-specific exception below explicitly authorizes the release and records
+each deferred check as not passed:
 
 - unit tests and unsigned CI build;
 - Developer ID archive and export;
@@ -19,20 +21,23 @@ Do not create a public release until all of the following pass:
 - verification that original per-power-source values are restored.
 
 Until this matrix passes, public copy must describe the feature as pre-release
-and must not promise closed-lid operation.
+and must not promise closed-lid operation, unless a version-specific exception
+below authorizes release. Public copy for an excepted release must disclose the
+deferred coverage and must not describe those checks as passed.
 
-Intel real-device coverage is the only exception for the initial release: all
-other gates above must pass, including the Apple silicon matrix and
-universal-binary checks. Record Intel real-device coverage separately when it
-becomes available; do not describe Rosetta validation as an Intel real-device
-result.
+Without a version-specific exception recorded below, Intel real-device coverage
+is the only initial-release exception: all other gates above must pass,
+including the Apple silicon matrix and universal-binary checks. Record Intel
+real-device coverage separately when it becomes available; do not describe
+Rosetta validation as an Intel real-device result.
 
 ### v1.0.0 recorded validation exception
 
 The initial `v1.0.0` release was authorized on 2026-07-26 with a documented
 deferral of disruptive real-device checks so active user workloads would not be
-interrupted. This is a release-specific risk acceptance, not evidence that the
-deferred checks passed and not a change to the general release gate above.
+interrupted. This release-specific risk acceptance explicitly overrides the
+listed gate items for `v1.0.0`; it is not evidence that the deferred checks
+passed and does not carry forward to later versions.
 
 Verified before the release decision:
 
